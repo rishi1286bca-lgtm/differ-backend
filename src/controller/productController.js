@@ -11,7 +11,7 @@ const imagekit = new ImageKit({
 
 exports.getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find(); 
+        const products = await Product.find().lean().exec(); 
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ message: "Error fetching products", error: error.message });
