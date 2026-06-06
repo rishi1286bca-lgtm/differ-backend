@@ -8,6 +8,7 @@ const product = require('./model/product.model');
 const category = require('./model/Category.model');
 const blogRouter = require('./routes/blogRouter');
 const productRouter = require('./routes/productRouter');
+const authRouter = require('./routes/authRouter');
 const connectDB = require('./db/db');
 
 const app = express();
@@ -27,6 +28,6 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 app.use('/api/blogs', blogRouter);
-app.use('/api/products', productRouter); // NEW
- 
+app.use('/api/products', productRouter); 
+app.use('/api/auth', authRouter);   
 module.exports = app;
