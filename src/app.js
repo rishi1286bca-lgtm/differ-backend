@@ -11,6 +11,10 @@ const productRouter = require('./routes/productRouter');
 const authRouter = require('./routes/authRouter');
 const connectDB = require('./db/db');
 
+const orderRouter = require('./routes/orderRouter'); // Add this
+const wishlistRouter = require('./routes/wishlistRouter'); // Add this
+const cartRouter = require("./routes/cartRouter")
+
 const app = express();
 
 app.use(cors({
@@ -30,4 +34,7 @@ app.get('/', (req, res) => {
 app.use('/api/blogs', blogRouter);
 app.use('/api/products', productRouter); 
 app.use('/api/auth', authRouter);   
+app.use('/api/orders', orderRouter);      
+app.use('/api/cart', cartRouter);
+app.use('/api/wishlist', wishlistRouter);
 module.exports = app;
