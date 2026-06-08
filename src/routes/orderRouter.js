@@ -1,9 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const orderController = require('../controller/orderController');
-const authMiddleware = require('../middlewear/authMiddleware');
+const { 
+  createOrder, 
+  getUserOrders, 
+  getAllOrders, 
+  updateOrderStatus 
+} = require('../controller/orderController');
+const protect  = require('../middlewear/authMiddleware');  
+ 
+router.post('/', protect, createOrder);                
+router.get('/myorders', protect, getUserOrders);       
 
-// Secure routes with token verification
-router.post('/', authMiddleware, orderController.createOrder);
-router.get('/', authMiddleware, orderController.getOrders); // Gets orders for the logged-in user
+
+router.get('/', getAllOrders);                
+router.put('/:id/status', updateOrderStatus); 
+
 module.exports = router;

@@ -1,45 +1,71 @@
-const Order = require('../model/order.model'); 
-const Product = require('../model/product.model');
+const Order = require('../model/order.model');
 
-exports.createOrder = async (req, res) => {
+// 1. Create Order
+const createOrder = async (req, res) => {
   try {
-    const userId = req.user.id; 
-    const { products } = req.body;
-    
-    if (!products || !Array.isArray(products) || products.length === 0) {
-      return res.status(400).json({ message: 'Invalid order data' });
+    const { orderItems, shippingAddress, totalPrice } = req.body;
+
+    if (orderItems && orderItems.length === 0) {
+      return res.status(400).json({ message: 'No order items provided' });
     }
 
-    let totalPrice = 0;
-    const populatedProducts = [];
+    const order = new Order({
+      orderItems,
+      shippingAddress,
+      totalPrice,
+      user: req.user.id // Token se aayi hui User ID yahan save hogi
+    });
 
-    for (const item of products) {
-      if (!item.product || !item.quantity || item.quantity < 1) {
-        return res.status(400).json({ message: 'Invalid product entry' });
-      }
-      const prod = await Product.findById(item.product).select('price');
-      if (!prod) return res.status(404).json({ message: 'Product not found: ' + item.product });
-      
-      totalPrice += prod.price * item.quantity;
-      populatedProducts.push({ product: item.product, quantity: item.quantity });
-    }
-
-    const order = new Order({ user: userId, products: populatedProducts, totalPrice });
-    await order.save();
-    return res.status(201).json(order);
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error placing order' });
+    const savedOrder = await order.save();
+    res.status(201).json(savedOrder);
+  } catch (error) {
+    console.error('Order placement error:', error);
+    res.status(500).json({ message: 'Failed to place order' });
   }
 };
 
-exports.getOrders = async (req, res) => {
+// 2. Get Logged-In User's Orders
+const getUserOrders = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const orders = await Order.find({ user: userId }).populate('products.product').sort({ createdAt: -1 });
-    return res.json(orders);
-  } catch (err) {
-    return res.status(500).json({ message: 'Server error fetching orders' });
+    // Sirf wahi orders fetch karega jiski user ID token wali ID se match karti hai
+    const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 }); 
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch orders' });
   }
+};
+
+// 3. Get All Orders (Admin)
+const getAllOrders = async (req, res) => {
+  try {
+    // .populate('user', 'name email') karne se admin ko customer ka naam bhi dikh jayega
+    const orders = await Order.find().populate('user', 'name email').sort({ createdAt: -1 });
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch all orders' });
+  }
+};
+
+// 4. Update Order Status (Admin)
+const updateOrderStatus = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    
+    if (order) {
+      order.status = req.body.status;
+      const updatedOrder = await order.save();
+      res.status(200).json(updatedOrder);
+    } else {
+      res.status(404).json({ message: 'Order not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update order status' });
+  }
+};
+
+module.exports = { 
+  createOrder, 
+  getUserOrders, 
+  getAllOrders, 
+  updateOrderStatus 
 };
