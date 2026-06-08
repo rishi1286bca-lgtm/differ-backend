@@ -25,7 +25,7 @@ exports.register = async (req, res) =>{
     })
     await newUser.save();
 
-    const token  = jwt.sign({id:newUser.id},process.env.jwt_secret,{expiresIn:"1h"});
+    const token  = jwt.sign({id:newUser.id},process.env.jwt_secret,{expiresIn:"30d"});
 
     res.status(201).json({message:"User Registered Successfully"});
     }catch (error) {
